@@ -12,6 +12,7 @@ namespace csharp_scrabble_challenge.Main
         public Scrabble(string word)
         {            
             //TODO: do something with the word variable
+            // hi
         }
 
         public int score()
