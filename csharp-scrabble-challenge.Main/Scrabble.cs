@@ -20,29 +20,44 @@ namespace csharp_scrabble_challenge.Main
             {'U', 1}, {'V', 4}, {'W', 4}, {'X', 8}, {'Y', 4},
             {'Z', 10}
         };
-        private int _totalScore = 0;
 
         public Scrabble(string word)
-        {            
+        {
             _word = word;
         }
 
         public int score()
         {
-            foreach (char letter in _word.ToUpper())
-            {
-                if (_letterValues.TryGetValue(letter, out int value)) // check if the letter exists and retrive its value
-                {
-                    _totalScore += value;          
-                }
-                else
-                {
-                    _totalScore += 0; // Things that are not letters and not in the dict will be ignored and do not contribute to the score
-                }
-            }
+            int _totalScore = 0;
+            int index = 0;
 
+            while (index < _word.Length)
+            {
+                char currentChar = _word[index];
+
+                if (currentChar == '{' || currentChar == '[')
+                {
+                    int multiplier = (currentChar == '{') ? 2 : 3;
+                    index++; // Move past the opening brace or bracket to the letter that has double or triple score
+
+                    // check that the character after the letter inside brackets is also a closing bracket
+                    if (index < _word.Length && (_word[index + 1] == '}' || _word[index + 1] == ']'))
+                    {
+                        // Get the letter and its score
+                        if (_letterValues.TryGetValue(currentChar, out int baseValue))
+                        {
+                            _totalScore += baseValue * multiplier;
+                        }
+
+                    }
+                    index += 2; // Move past the letter and the closing brace or bracket
+
+                }
+                else if (_letterValues.TryGetValue(currentChar, out int value))
+                {
+                    _totalScore += value;
+                }
+                index++;
+            }
             return _totalScore;
         }
-
-    }
-}
