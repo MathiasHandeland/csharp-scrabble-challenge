@@ -38,26 +38,35 @@ namespace csharp_scrabble_challenge.Main
                 if (currentChar == '{' || currentChar == '[')
                 {
                     int multiplier = (currentChar == '{') ? 2 : 3;
-                    index++; // Move past the opening brace or bracket to the letter that has double or triple score
+                    index++; // Move to the letter inside the brackets
 
                     // check that the character after the letter inside brackets is also a closing bracket
-                    if (index < _word.Length && (_word[index + 1] == '}' || _word[index + 1] == ']'))
+                    if (index < _word.Length && (index + 1 < _word.Length) && (_word[index + 1] == '}' || _word[index + 1] == ']'))
                     {
-                        // Get the letter and its score
-                        if (_letterValues.TryGetValue(currentChar, out int baseValue))
+                        // retrieve the letter inside and its score
+                        char letter = Char.ToUpper(_word[index]);
+                        if (_letterValues.TryGetValue(letter, out int baseValue))
                         {
                             _totalScore += baseValue * multiplier;
                         }
 
                     }
+
                     index += 2; // Move past the letter and the closing brace or bracket
 
                 }
-                else if (_letterValues.TryGetValue(currentChar, out int value))
+                else
                 {
-                    _totalScore += value;
+                    char letter = Char.ToUpper(_word[index]);
+                    if (_letterValues.TryGetValue(letter, out int value))
+                    {
+                        _totalScore += value;
+                    }
+
+                    index++; // Move to the next character 
                 }
-                index++;
             }
             return _totalScore;
         }
+    }
+}
