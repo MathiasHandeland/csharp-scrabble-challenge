@@ -20,6 +20,8 @@ namespace csharp_scrabble_challenge.Main
             {'U', 1}, {'V', 4}, {'W', 4}, {'X', 8}, {'Y', 4},
             {'Z', 10}
         };
+        private List<char> _validBrackets = new List<char> { '{', '}', '[', ']' };
+        private Stack<char> _bracketStack = new Stack<char>();
 
         public Scrabble(string word)
         {
@@ -28,45 +30,112 @@ namespace csharp_scrabble_challenge.Main
 
         public int score()
         {
-            int _totalScore = 0;
+            int totalScore = 0;
             int index = 0;
+
+            // check if word is valid
+            if (!IsValidWord(_word))
+            {
+                return 0; // Invalid word, return 0 as total score
+            }
 
             while (index < _word.Length)
             {
                 char currentChar = _word[index];
 
-                if (currentChar == '{' || currentChar == '[')
+                if (currentChar == '{')
                 {
-                    int multiplier = (currentChar == '{') ? 2 : 3;
-                    index++; // Move to the letter inside the brackets
 
-                    // check that the character after the letter inside brackets is also a closing bracket
-                    if (index < _word.Length && (index + 1 < _word.Length) && (_word[index + 1] == '}' || _word[index + 1] == ']'))
+                    int multiplier = 2; // this is potentially a double score word
+                    index++; // Move past the curly bracket to the letter inside the brackets
+
+                    // check that the character after the letter inside brackets is the correct closing bracket
+                    if ((index + 1 < _word.Length) && (_word[index + 1] == '}'))
                     {
-                        // retrieve the letter inside and its score
+                        // retrieve the letter inside and its base value score
                         char letter = Char.ToUpper(_word[index]);
                         if (_letterValues.TryGetValue(letter, out int baseValue))
                         {
-                            _totalScore += baseValue * multiplier;
+                            totalScore += (baseValue * multiplier);
                         }
-
+                        index += 2; // move past the letter and the closing brace or bracket
                     }
 
-                    index += 2; // Move past the letter and the closing brace or bracket
-
+                    continue; // move to next iteration since no closing bracket was found
                 }
+
+                else if (currentChar == '[')
+                {
+                    int multiplier = 3; // this is potentially a triple score word
+                    index++; // Move to the letter inside the brackets
+
+                    // check that the character after the letter inside brackets is also the right closing bracket
+                    if ((index + 1 < _word.Length) && (_word[index + 1] == ']'))
+                    {
+                        // retrieve the letter inside and its base value score
+                        char letter = Char.ToUpper(_word[index]);
+                        if (_letterValues.TryGetValue(letter, out int baseValue))
+                        {
+                            totalScore += baseValue * multiplier;
+                        }
+
+                        index += 2; // move past the letter and the closing brace or bracket
+                    }
+
+                    continue; // move to next iteration since no closing bracket was found
+                }
+
                 else
                 {
                     char letter = Char.ToUpper(_word[index]);
                     if (_letterValues.TryGetValue(letter, out int value))
                     {
-                        _totalScore += value;
+                        totalScore += value;
                     }
 
-                    index++; // Move to the next character 
+                    index++; // Move to the next character in the word
                 }
             }
-            return _totalScore;
+            return totalScore;
+        }
+
+        private bool IsValidWord(string word)
+        {
+            Stack<char> bracketStack = new Stack<char>();
+
+            // base check: if a character is not present in dictionary or a valid bracket, we return 0
+            foreach (char c in word)
+            {
+                if (!char.IsLetter(c) && !_validBrackets.Contains(c))
+                {
+                    return false; // Invalid character found
+                }
+            }
+
+            // check for balanced brackets
+            foreach (char c in word)
+            {
+                if (c == '{' || c == '[')
+                {
+                    bracketStack.Push(c);
+                }
+                else if (c == '}' || c == ']')
+                {
+                    if (bracketStack.Count == 0)
+                    {
+                        return false;
+                    }
+                    char openingBracket = bracketStack.Pop();
+                    if ((c == '}' && openingBracket != '{') ||
+                        (c == ']' && openingBracket != '['))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // If stack is empty, all brackets are balanced
+            return bracketStack.Count == 0;
         }
     }
 }
